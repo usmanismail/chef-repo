@@ -1,4 +1,4 @@
-jetty-opsworks
-==============
+chef-repo
+=========
 
-An opsworks cookbook for setting up a Jetty 9 layer
+An opsworks repo
