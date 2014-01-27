@@ -1,27 +1,5 @@
-case node["platform"]
-	when "centos","redhat","fedora"
-		package 'java6' do
-		  package_name 'java-1.6.0-openjdk'
-		  action :remove
-		end
 
-		package 'java7' do
-		  package_name 'java-1.7.0-openjdk'
-		  action :install
-		end 
-	when 'debian', 'ubuntu'
-		bash "update-apt-repository" do
-  		user "root"
-  		code <<-EOH
-  			apt-get update
-  		EOH
-		end
-
-		package 'java7' do
-		  package_name 'openjdk-7-jdk'
-		  action :install
-		end 		
-end
+include_recipe 'java::default'
 
 package 'chkconfig' do 
 	action:install
@@ -33,8 +11,6 @@ jetty_Tarball = "/tmp/jetty.tar.gz"
 remote_file jetty_Tarball do
   source "http://download.eclipse.org/jetty/stable-9/dist/jetty-distribution-#{node['jetty']['version']}.tar.gz"
 end
-
-jetty_Tarball
 
 bash 'extract_jetty' do
   code <<-EOH
@@ -55,22 +31,23 @@ bash 'chown_jetty' do
   EOH
 end
 
-bash 'setup_Service' do
-  code <<-EOH
-    ln -s /opt/jetty/bin/jetty.sh /etc/init.d/jetty
-    ln -s /usr/lib/insserv/insserv /sbin/insserv
-	chkconfig --add jetty
-	chkconfig jetty on
-  EOH
-end
+
 
 template "/etc/default/jetty" do
   source "jetty.erb"
 end
 
-bash 'start_Service' do
+bash 'setup_JettyInitd' do
   code <<-EOH
-    service jetty start
+    ln -s /opt/jetty/bin/jetty.sh /etc/init.d/jetty
   EOH
+end
+
+service 'jetty' do
+	action:enable
+end
+
+service 'jetty' do
+	action:start
 end
 
